@@ -1,0 +1,52 @@
+name: URL Scanner
+
+on:
+  push:
+    branches:
+      - v1.0
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 2
+      
+      - name: Get new URLs from git diff
+        id: get_urls
+        run: |
+          # Get added lines from targets.txt (lines starting with +)
+          git diff HEAD^ HEAD targets.txt | grep '^+' | sed 's/^+//' | grep '|||' > new_targets.txt || true
+          echo "New targets found:"
+          cat new_targets.txt
+      
+      - name: Scan each new URL
+        run: |
+          mkdir -p results
+          if [ ! -s new_targets.txt ]; then
+            echo "No new targets to scan"
+            exit 0
+          fi
+          while IFS='|||' read -r url mode; do
+            # Skip empty lines and comments
+            if [ -z "$url" ] || [[ "$url" == \#* ]]; then
+              continue
+            fi
+            echo "Scanning: $url with mode: ${mode:-default}"
+            if [ -z "$mode" ]; then
+              # Default medium mode (no --mode flag)
+              docker run --rm -v "${PWD}/results:/results" cyberseenu1947/automation-scanner:0.1.3 "$url"
+            else
+              # Specific mode
+              docker run --rm -v "${PWD}/results:/results" cyberseenu1947/automation-scanner:0.1.3 "$url" --mode "$mode"
+            fi
+          done < new_targets.txt
+      
+      - name: Upload results
+        uses: actions/upload-artifact@v3
+        with:
+          name: scan-results
+          path: results/
