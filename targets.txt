@@ -9,3 +9,4 @@
 # Add your real targets below (without #):
 seenuvasan.online
 seenuvasan.online|||test
+seenuvasan.online|||test
