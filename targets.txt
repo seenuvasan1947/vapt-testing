@@ -1,0 +1,25 @@
+# APK Scan Targets
+# Format: filename|||flags
+# Flags are optional — leave empty after ||| for defaults
+#
+# Examples:
+#   app.zip|||--name MyApp --skip-patch
+#   app.apk|||--name TestApp --app-only --skip-semgrep
+#   splits.zip|||--name SplitApp --combine --skip-patch
+#   app.xapk|||--name MyApp
+#   app.apk|||
+#   app.apk|||--name MyApp --patch-only          <- MITM patch only, no scan
+#
+# To run multiple files at once, add multiple lines (processed one by one):
+#   app1.apk|||--name App1 --skip-patch
+#   app2.zip|||--name App2 --patch-only
+#   app3.xapk|||--name App3 --app-only --skip-semgrep
+#
+# Available flags:
+#   --name <name>       Custom output folder name
+#   --app-only          Scan only app code, skip libraries
+#   --skip-scan         Decompile only, no vulnerability scan
+#   --combine           Merge split APKs before scanning
+#   --skip-patch        Skip apk-mitm MITM patching
+#   --skip-semgrep      Skip Semgrep static analysis
+#   --patch-only        Only patch APK for MITM, skip all analysis

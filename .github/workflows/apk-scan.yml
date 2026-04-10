@@ -1,0 +1,79 @@
+name: APK Scanner
+
+on:
+  push:
+    branches:
+      - apk-extracter-v1
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get new scan targets from git diff
+        id: get_targets
+        run: |
+          git diff HEAD^ HEAD targets.txt | grep '^+' | sed 's/^+//' | grep '|||' > new_targets.txt || true
+          echo "New targets found:"
+          cat new_targets.txt
+
+      - name: Pull Docker image
+        run: docker pull finstein/apk-scanner:1.0.0
+
+      - name: Scan each new target
+        run: |
+          mkdir -p results
+
+          if [ ! -s new_targets.txt ]; then
+            echo "No new targets to scan"
+            exit 0
+          fi
+
+          while read -r line; do
+            # Skip empty lines and comments
+            if [ -z "$line" ] || [[ "$line" == \#* ]]; then
+              continue
+            fi
+
+            # Parse filename and flags using ||| separator
+            filename=$(echo "$line" | awk -F'\|\|\|' '{print $1}' | xargs)
+            flags=$(echo "$line"    | awk -F'\|\|\|' '{print $2}' | xargs)
+
+            echo "========================================"
+            echo "File  : $filename"
+            echo "Flags : $flags"
+            echo "========================================"
+
+            # Find the uploaded file in the repo
+            filepath=$(find . -name "$filename" ! -path "./.git/*" | head -1)
+
+            if [ -z "$filepath" ]; then
+              echo "ERROR: File '$filename' not found in repository. Skipping."
+              continue
+            fi
+
+            abs_path="${{ github.workspace }}/${filepath#./}"
+
+            docker run --rm \
+              -v "$abs_path:/input/$filename" \
+              -v "${{ github.workspace }}/results:/output" \
+              finstein/apk-scanner:1.0.0 \
+              scan "/input/$filename" \
+              --skip-sonar \
+              $flags < /dev/null
+
+          done < new_targets.txt
+
+      - name: Upload scan results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: apk-scan-results
+          path: results/
+          retention-days: 30
+          if-no-files-found: warn
