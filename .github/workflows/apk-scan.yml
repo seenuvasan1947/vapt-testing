@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - apk-extracter-v1
+    paths:
+      - apk-target.txt
 
 jobs:
   scan:
@@ -18,18 +20,18 @@ jobs:
       - name: Get new scan targets from git diff
         id: get_targets
         run: |
-          git diff HEAD^ HEAD targets.txt | grep '^+' | sed 's/^+//' | grep '|||' > new_targets.txt || true
+          git diff HEAD^ HEAD apk-target.txt | grep '^+' | sed 's/^+//' | grep '|||' > new_apk-target.txt || true
           echo "New targets found:"
-          cat new_targets.txt
+          cat new_apk-target.txt
 
       - name: Pull Docker image
-        run: docker pull finstein/apk-scanner:1.0.0
+        run: docker pull cyberseenu/apk-scanner:1.0.1
 
       - name: Scan each new target
         run: |
           mkdir -p results
 
-          if [ ! -s new_targets.txt ]; then
+          if [ ! -s new_apk-target.txt ]; then
             echo "No new targets to scan"
             exit 0
           fi
@@ -62,12 +64,12 @@ jobs:
             docker run --rm \
               -v "$abs_path:/input/$filename" \
               -v "${{ github.workspace }}/results:/output" \
-              finstein/apk-scanner:1.0.0 \
+              cyberseenu/apk-scanner:1.0.1 \
               scan "/input/$filename" \
               --skip-sonar \
               $flags < /dev/null
 
-          done < new_targets.txt
+          done < new_apk-target.txt
 
       - name: Upload scan results
         uses: actions/upload-artifact@v4
