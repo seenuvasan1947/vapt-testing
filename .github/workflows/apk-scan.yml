@@ -52,7 +52,8 @@ jobs:
             echo "========================================"
 
             # Find the uploaded file in the repo
-            filepath=$(find . -name "$filename" ! -path "./.git/*" | head -1)
+            basename=$(basename "$filename")
+            filepath=$(find . -name "$basename" ! -path "./.git/*" | head -1)
 
             if [ -z "$filepath" ]; then
               echo "ERROR: File '$filename' not found in repository. Skipping."
@@ -62,10 +63,10 @@ jobs:
             abs_path="${{ github.workspace }}/${filepath#./}"
 
             docker run --rm \
-              -v "$abs_path:/input/$filename" \
+              -v "$abs_path:/input/$basename" \
               -v "${{ github.workspace }}/results:/output" \
               cyberseenu/apk-scanner:1.0.1 \
-              scan "/input/$filename" \
+              scan "/input/$basename" \
               --skip-sonar \
               $flags < /dev/null
 
