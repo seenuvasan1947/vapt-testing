@@ -25,3 +25,4 @@
 #   --patch-only        Only patch APK for MITM, skip all analysis
 targets/extracted_apks_1775820845371.zip|||--name extracted_apks_1775820845371 --patch-only
 targets/extracted_apks_1775820845371.zip|||--name extracted_apks_1775820845371 --patch-only
+targets/extracted_apks_1775820845371.zip|||--name extracted_apks_1775820845371 --patch-only
