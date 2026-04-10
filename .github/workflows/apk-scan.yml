@@ -20,7 +20,7 @@ jobs:
       - name: Get new scan targets from git diff
         id: get_targets
         run: |
-          git diff HEAD^ HEAD apk-target.txt | grep '^+' | sed 's/^+//' | grep '|||' > new_apk-target.txt || true
+          git diff HEAD^ HEAD apk-target.txt | grep '^+[^+]' | sed 's/^+//' | grep '|||' > new_apk-target.txt || true
           echo "New targets found:"
           cat new_apk-target.txt
 
