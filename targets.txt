@@ -1,12 +1,6 @@
-# Add URLs in this format: URL|||mode
-# Modes: (empty for default/medium), test, aggressive
-#
-# Examples (keep these as comments - do not uncomment):
-# https://example.com|||
-# https://testphp.vulnweb.com|||test
-# https://demo.testfire.net|||aggressive
-#
-# Add your real targets below (without #):
 seenuvasan.online
 seenuvasan.online|||test
 seenuvasan.online|||test
+finactivity.finstein.ai|||test
+skyscanner.co.in|||test
+srmist.edu.in|||test
