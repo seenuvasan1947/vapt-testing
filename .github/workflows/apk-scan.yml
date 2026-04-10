@@ -43,8 +43,8 @@ jobs:
             fi
 
             # Parse filename and flags using ||| separator
-            filename=$(echo "$line" | awk -F'\|\|\|' '{print $1}' | xargs)
-            flags=$(echo "$line"    | awk -F'\|\|\|' '{print $2}' | xargs)
+            filename=$(echo "$line" | cut -d'|' -f1 | xargs)
+            flags=$(echo "$line"    | cut -d'|' -f4- | xargs)
 
             echo "========================================"
             echo "File  : $filename"
