@@ -25,7 +25,7 @@ jobs:
           cat new_apk-target.txt
 
       - name: Pull Docker image
-        run: docker pull cyberseenu/apk-scanner:1.0.1
+        run: docker pull cyberseenu/apk-scanner:1.0.3
 
       - name: Scan each new target
         run: |
@@ -65,7 +65,7 @@ jobs:
             docker run --rm \
               -v "$abs_path:/input/$basename" \
               -v "${{ github.workspace }}/results:/output" \
-              cyberseenu/apk-scanner:1.0.1 \
+              cyberseenu/apk-scanner:1.0.3 \
               scan "/input/$basename" \
               --skip-sonar \
               $flags < /dev/null
