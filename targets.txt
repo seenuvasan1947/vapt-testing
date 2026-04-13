@@ -4,3 +4,4 @@ seenuvasan.online|||test
 finactivity.finstein.ai|||test
 skyscanner.co.in|||test
 srmist.edu.in|||test
+seenuvasan.online|||--mode test|||--nodes subdomain_finder
