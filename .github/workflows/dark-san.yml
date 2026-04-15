@@ -1,0 +1,52 @@
+name: Dark Web Scanner
+
+on:
+  push:
+    branches:
+      - darkweb-v1
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Get new search targets from git diff
+        id: get_targets
+        run: |
+          git diff HEAD^ HEAD -- target.txt | grep '^+' | sed 's/^+//' | grep '|||' > new_targets.txt || true
+          echo "New targets found:"
+          cat new_targets.txt
+
+      - name: Run dark web scanner for each target
+        run: |
+          mkdir -p results
+          if [ ! -s new_targets.txt ]; then
+            echo "No new targets to scan"
+            exit 0
+          fi
+          while read -r line; do
+            if [ -z "$line" ] || [[ "$line" == \#* ]]; then
+              continue
+            fi
+            # Extract query (field 1)
+            query=$(echo "$line" | awk -F'\|\|\|' '{print $1}')
+            # Extract all flags (field 2 onwards) and join with spaces
+            flags=$(echo "$line" | awk -F'\|\|\|' '{for(i=2;i<=NF;i++) printf "%s ", $i}' | xargs)
+            echo "Searching: \"$query\" with flags: ${flags:-<defaults>}"
+            if [ -z "$flags" ]; then
+              docker run --rm -v "${PWD}/results:/results" cyberseenu/dark-web-scanner:1.0.1 "$query"
+            else
+              docker run --rm -v "${PWD}/results:/results" cyberseenu/dark-web-scanner:1.0.1 "$query" $flags
+            fi
+          done < new_targets.txt
+
+      - name: Upload results
+        uses: actions/upload-artifact@v4
+        with:
+          name: dark-web-scan-results
+          path: results/
