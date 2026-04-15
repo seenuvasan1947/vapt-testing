@@ -8,21 +8,20 @@ on:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 2
-      
+
       - name: Get new URLs from git diff
         id: get_urls
         run: |
-          # Get added lines from targets.txt (lines starting with +)
           git diff HEAD^ HEAD targets.txt | grep '^+' | sed 's/^+//' | grep '|||' > new_targets.txt || true
           echo "New targets found:"
           cat new_targets.txt
-      
+
       - name: Scan each new URL
         run: |
           mkdir -p results
@@ -31,23 +30,21 @@ jobs:
             exit 0
           fi
           while read -r line; do
-            # Skip empty lines and comments
             if [ -z "$line" ] || [[ "$line" == \#* ]]; then
               continue
             fi
-            # Parse URL and mode using ||| separator
-            url=$(echo "$line" | awk -F'\\|\\|\\|' '{print $1}')
-            mode=$(echo "$line" | awk -F'\\|\\|\\|' '{print $2}')
-            echo "Scanning: $url with mode: ${mode:-medium}"
-            if [ -z "$mode" ]; then
-              # Default medium mode
+            # Extract domain (field 1)
+            url=$(echo "$line" | awk -F'\|\|\|' '{print $1}')
+            # Extract all flags (field 2 onwards) and join with spaces
+            flags=$(echo "$line" | awk -F'\|\|\|' '{for(i=2;i<=NF;i++) printf "%s ", $i}' | xargs)
+            echo "Scanning: $url with flags: ${flags:---mode medium}"
+            if [ -z "$flags" ]; then
               docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.0 "$url" --mode medium
             else
-              # Specific mode
-              docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.0 "$url" --mode "$mode"
+              docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.0 "$url" $flags
             fi
           done < new_targets.txt
-      
+
       - name: Upload results
         uses: actions/upload-artifact@v4
         with:
