@@ -11,14 +11,14 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
         with:
           fetch-depth: 2
 
       - name: Get new URLs from git diff
         id: get_urls
         run: |
-          git diff HEAD^ HEAD targets.txt | grep '^+' | sed 's/^+//' | grep '|||' > new_targets.txt || true
+          git diff HEAD^ HEAD targets.txt | grep '^+' | sed 's/^+//' | grep -F '|||' > new_targets.txt || true
           echo "New targets found:"
           cat new_targets.txt
 
@@ -34,14 +34,14 @@ jobs:
               continue
             fi
             # Extract domain (field 1)
-            url=$(echo "$line" | awk -F'\|\|\|' '{print $1}')
+            url=$(echo "$line" | awk -F'[|][|][|]' '{print $1}')
             # Extract all flags (field 2 onwards) and join with spaces
-            flags=$(echo "$line" | awk -F'\|\|\|' '{for(i=2;i<=NF;i++) printf "%s ", $i}' | xargs)
+            flags=$(echo "$line" | awk -F'[|][|][|]' '{for(i=2;i<=NF;i++) printf "%s ", $i}' | xargs)
             echo "Scanning: $url with flags: ${flags:---mode medium}"
             if [ -z "$flags" ]; then
               docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.0 "$url" --mode medium
             else
-              docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.0 "$url" $flags
+              docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.0 "$url" "$flags"
             fi
           done < new_targets.txt
 
