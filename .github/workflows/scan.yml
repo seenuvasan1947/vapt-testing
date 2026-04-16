@@ -39,9 +39,9 @@ jobs:
             flags=$(echo "$line" | awk -F'[|][|][|]' '{for(i=2;i<=NF;i++) printf "%s ", $i}' | xargs)
             echo "Scanning: $url with flags: ${flags:---mode medium}"
             if [ -z "$flags" ]; then
-              docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.1 "$url" --mode medium
+              docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.2 "$url" --mode medium
             else
-              docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.1 "$url" "$flags"
+              docker run --rm -v "${PWD}/results:/results" cyberseenu/vapt-automation-scanner:v1.0.2 "$url" $flags
             fi
           done < new_targets.txt
 
