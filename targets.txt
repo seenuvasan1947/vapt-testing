@@ -8,3 +8,4 @@ seenuvasan.online|||--mode test|||--nodes subdomain_finder
 seenuvasan.online|||--mode aggressive|||--nodes clickjacking,wafw00f
 seenuvasan.online|||--mode aggressive|||--nodes dns_recon,clickjacking
 seenuvasan.online|||--mode aggressive|||--nodes dns_recon,clickjacking
+seenuvasan.online|||--mode aggressive|||--nodes dns_recon,clickjacking
