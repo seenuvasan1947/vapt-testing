@@ -41,7 +41,7 @@ jobs:
             if [ -z "$flags" ]; then
               docker run --rm -v "${PWD}/results:/results" cyberseenu/dark-web-scanner:1.0.1 "$query"
             else
-              docker run --rm -v "${PWD}/results:/results" cyberseenu/dark-web-scanner:1.0.1 "$query" "$flags"
+              docker run --rm -v "${PWD}/results:/results" cyberseenu/dark-web-scanner:1.0.1 "$query" $flags
             fi
           done < new_targets.txt
 
