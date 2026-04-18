@@ -69,44 +69,39 @@ jobs:
 
             echo "Searching Telegram for: $target_name"
 
-            # Get recent updates (no offset — scan last 100 pending updates)
-            UPDATES=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?limit=100&timeout=0")
+            python3 << PYEOF
+import os, sys
+from pyrogram import Client
 
-            # Extract file_id of the latest document matching the filename
-            FILE_ID=$(echo "$UPDATES" | python3 - << 'PYEOF'
-          import sys, json, os
+API_ID   = int(os.environ['API_ID'])
+API_HASH = os.environ['API_HASH']
+SESSION  = os.environ['SESSION']
+CHAT_ID  = int(os.environ['CHAT_ID'])
+target   = os.environ['TARGET_NAME']
+dest     = "$dest"
 
-          target = os.environ.get('TARGET_NAME', '')
-          raw = sys.stdin.read()
-          try:
-              data = json.loads(raw)
-          except Exception:
-              sys.exit(1)
+async def run():
+    app = Client("tg_session", api_id=API_ID, api_hash=API_HASH,
+                 session_string=SESSION, no_updates=True)
+    async with app:
+        async for msg in app.search_messages(chat_id=CHAT_ID, query=target):
+            if msg.document and os.path.basename(msg.document.file_name) == os.path.basename(target):
+                print(f"[+] Found: {msg.document.file_name}", flush=True)
+                await msg.download(file_name=dest)
+                print(f"[+] Downloaded to: {dest}", flush=True)
+                sys.exit(0)
+    print(f"[-] Not found: {target}", flush=True)
+    sys.exit(1)
 
-          updates = data.get('result', [])
-          found_id = ''
-          for update in updates:
-              msg = update.get('message') or update.get('channel_post')
-              if not msg:
-                  continue
-              doc = msg.get('document')
-              if doc and os.path.basename(doc.get('file_name', '')) == os.path.basename(target):
-                  found_id = doc['file_id']   # keep iterating — last (latest) wins
+import asyncio
+asyncio.run(run())
+PYEOF
 
-          print(found_id)
-          PYEOF
-          )
-
-            if [ -z "$FILE_ID" ]; then
-              echo "ERROR: '$target_name' not found in repo or Telegram. Skipping."
+            local exit_code=$?
+            if [ $exit_code -ne 0 ]; then
+              echo "ERROR: '$target_name' not found in Telegram. Skipping."
               return 1
             fi
-
-            # Get download URL
-            FILE_PATH=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${FILE_ID}" \
-              | python3 -c "import sys,json; print(json.load(sys.stdin)['result']['file_path'])")
-
-            curl -s -o "$dest" "https://api.telegram.org/file/bot${BOT_TOKEN}/${FILE_PATH}"
             echo "Downloaded from Telegram: $target_name"
             return 0
           }
