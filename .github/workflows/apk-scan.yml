@@ -125,15 +125,17 @@ jobs:
               --skip-sonar \
               $flags < /dev/null
 
-            # Send result ZIPs to Telegram
-            result_zips=$(find results/ -name "*.zip" | sort)
-            if [ -z "$result_zips" ]; then
+            # Zip entire results folder and send to Telegram
+            result_zip="${{ github.workspace }}/downloads/${basename}_results.zip"
+            zip -r "$result_zip" results/
+
+            if [ ! -s "$result_zip" ]; then
               curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
                 -d chat_id="${CHAT_ID}" \
-                -d text="Scan complete for ${basename} — no ZIP output generated."
+                -d text="Scan complete for ${basename} — no output generated."
             else
               export SCAN_BASENAME="$basename"
-              export RESULT_ZIPS="$result_zips"
+              export RESULT_ZIPS="$result_zip"
               python3 "${{ github.workspace }}/.github/scripts/send_results.py"
             fi
 
