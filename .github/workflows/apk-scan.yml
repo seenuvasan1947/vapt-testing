@@ -24,25 +24,9 @@ jobs:
           echo "New targets found:"
           cat new_apk-target.txt
 
-      - name: Debug - Show secrets in use (PLAIN TEXT)
-        env:
-          BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          API_ID: ${{ secrets.TELEGRAM_API_ID }}
-          API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
-          SESSION: ${{ secrets.TELEGRAM_SESSION }}
-        run: |
-          echo "=== SECRETS IN USE (PLAIN TEXT) ==="
-          echo "BOT_TOKEN=$BOT_TOKEN"
-          echo "CHAT_ID=$CHAT_ID"
-          echo "API_ID=$API_ID"
-          echo "API_HASH=$API_HASH"
-          echo "SESSION=$SESSION"
-          echo "===================================="
-
       - name: Install dependencies
         run: |
-          pip install -q pyrogram tgcrypto
+          pip install -q pyrogram tgcrypto requests
 
       - name: Pull Docker image
         run: docker pull cyberseenu/apk-scanner:1.0.3
@@ -63,51 +47,59 @@ jobs:
           fi
 
           # Helper: find latest Telegram document matching a filename and download it
+          # Uses the same Pyrogram user-session search flow that worked in Colab.
           fetch_from_telegram() {
             local target_name="$1"
             local dest="$2"
 
             echo "Searching Telegram for: $target_name"
 
-            # Get recent updates (no offset — scan last 100 pending updates)
-            UPDATES=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?limit=100&timeout=0")
+            TARGET_NAME="$target_name" DEST_PATH="$dest" python3 - << 'PYEOF'
+          import asyncio
+          import os
+          import sys
+          from pyrogram import Client
 
-            # Extract file_id of the latest document matching the filename
-            FILE_ID=$(echo "$UPDATES" | python3 - << 'PYEOF'
-          import sys, json, os
+          API_ID = int(os.environ["API_ID"])
+          API_HASH = os.environ["API_HASH"]
+          SESSION = os.environ["SESSION"]
+          CHAT_ID = int(os.environ["CHAT_ID"])
+          target_name = os.environ["TARGET_NAME"]
+          dest_path = os.environ["DEST_PATH"]
 
-          target = os.environ.get('TARGET_NAME', '')
-          raw = sys.stdin.read()
-          try:
-              data = json.loads(raw)
-          except Exception:
-              sys.exit(1)
+          async def main():
+              app = Client(
+                  "search_session",
+                  api_id=API_ID,
+                  api_hash=API_HASH,
+                  session_string=SESSION,
+                  no_updates=True,
+              )
+              await app.start()
+              try:
+                  async for msg in app.search_messages(chat_id=CHAT_ID, query=target_name):
+                      if not msg.document:
+                          continue
+                      current_name = os.path.basename(msg.document.file_name or "")
+                      if current_name == os.path.basename(target_name):
+                          os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+                          await msg.download(file_name=dest_path)
+                          print(f"Downloaded from Telegram: {current_name}")
+                          return
+              finally:
+                  await app.stop()
 
-          updates = data.get('result', [])
-          found_id = ''
-          for update in updates:
-              msg = update.get('message') or update.get('channel_post')
-              if not msg:
-                  continue
-              doc = msg.get('document')
-              if doc and os.path.basename(doc.get('file_name', '')) == os.path.basename(target):
-                  found_id = doc['file_id']   # keep iterating — last (latest) wins
+              print(f"ERROR: '{target_name}' not found in Telegram chat history.", file=sys.stderr)
+              raise SystemExit(1)
 
-          print(found_id)
+          asyncio.run(main())
           PYEOF
-          )
 
-            if [ -z "$FILE_ID" ]; then
+            if [ $? -ne 0 ]; then
               echo "ERROR: '$target_name' not found in repo or Telegram. Skipping."
               return 1
             fi
 
-            # Get download URL
-            FILE_PATH=$(curl -s "https://api.telegram.org/bot${BOT_TOKEN}/getFile?file_id=${FILE_ID}" \
-              | python3 -c "import sys,json; print(json.load(sys.stdin)['result']['file_path'])")
-
-            curl -s -o "$dest" "https://api.telegram.org/file/bot${BOT_TOKEN}/${FILE_PATH}"
-            echo "Downloaded from Telegram: $target_name"
             return 0
           }
 
@@ -163,12 +155,12 @@ jobs:
                 -d chat_id="${CHAT_ID}" \
                 -d text="✅ Scan complete for ${basename} — no ZIP output generated."
             else
-              python3 << 'TGEOF'
+              RESULT_ZIPS="$result_zips" TARGET_BASENAME="$basename" python3 - << 'TGEOF'
           import os, sys
           from pathlib import Path
 
-          result_zips = """$result_zips""".strip().split('\n')
-          basename = """${basename}"""
+          result_zips = [p for p in os.environ.get("RESULT_ZIPS", "").splitlines() if p.strip()]
+          basename = os.environ["TARGET_BASENAME"]
           BOT_TOKEN = os.environ['BOT_TOKEN']
           CHAT_ID = os.environ['CHAT_ID']
           API_ID = int(os.environ['API_ID'])
