@@ -17,20 +17,18 @@ jobs:
         with:
           fetch-depth: 2
 
-      - name: Get new scan targets from git diff
+      - name: Get new scan targets
         run: |
           git diff HEAD^ HEAD apk-target.txt | grep '^+[^+]' | sed 's/^+//' | grep '|||' > new_apk-target.txt || true
-          echo "New targets found:"
           cat new_apk-target.txt
 
-      - name: Install dependencies
-        run: |
-          pip install -q pyrogram tgcrypto requests
+      - name: Install deps
+        run: pip install -q pyrogram tgcrypto requests
 
       - name: Pull Docker image
         run: docker pull cyberseenu/apk-scanner:1.0.3
 
-      - name: Scan each new target
+      - name: Scan
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID:   ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -40,18 +38,13 @@ jobs:
         run: |
           mkdir -p results downloads
 
-          if [ ! -s new_apk-target.txt ]; then
-            echo "No new targets to scan"
-            exit 0
-          fi
-
           fetch_from_telegram() {
             local target_name="$1"
             local dest="$2"
 
             echo "Searching Telegram for: $target_name"
 
-            TARGET_NAME="$target_name" DEST_PATH="$dest" python3 - << 'PYEOF'
+            TARGET_NAME="$target_name" DEST_PATH="$dest" python3 << 'PYEOF'
 import asyncio
 import os
 import sys
@@ -75,7 +68,7 @@ async def main():
 
     await app.start()
 
-    # 🔥 CRITICAL: load peer cache (fixes CI failure)
+    # FIX: load dialogs
     async for _ in app.get_dialogs():
         break
 
@@ -88,135 +81,72 @@ async def main():
             if not msg.document:
                 continue
 
-            current_name = os.path.basename(msg.document.file_name or "")
+            current = os.path.basename(msg.document.file_name or "")
 
-            # 🔥 safer match
-            if os.path.basename(target_name) in current_name:
+            if os.path.basename(target_name) in current:
                 os.makedirs(os.path.dirname(dest_path), exist_ok=True)
                 await msg.download(file_name=dest_path)
-                print(f"Downloaded from Telegram: {current_name}")
+                print("Downloaded:", current)
                 return
-
     finally:
         await app.stop()
 
-    print(f"ERROR: '{target_name}' not found in Telegram.", file=sys.stderr)
+    print("ERROR: file not found", file=sys.stderr)
     raise SystemExit(1)
 
 asyncio.run(main())
 PYEOF
 
             if [ $? -ne 0 ]; then
-              echo "ERROR: '$target_name' not found in repo or Telegram. Skipping."
               return 1
             fi
-
-            return 0
           }
 
           while read -r line; do
-            if [ -z "$line" ] || [[ "$line" == \#* ]]; then
-              continue
-            fi
+            [ -z "$line" ] && continue
 
             filename=$(echo "$line" | cut -d'|' -f1 | xargs)
             flags=$(echo "$line" | cut -d'|' -f4- | xargs)
 
-            echo "========================================"
-            echo "File  : $filename"
-            echo "Flags : $flags"
-            echo "========================================"
-
             basename=$(basename "$filename")
 
-            filepath=$(find . -name "$basename" ! -path "./.git/*" ! -path "./downloads/*" | head -1)
+            filepath=$(find . -name "$basename" ! -path "./downloads/*" | head -1)
 
             if [ -n "$filepath" ]; then
               abs_path="${{ github.workspace }}/${filepath#./}"
-              echo "Found in repo: $abs_path"
             else
-              echo "Not found in repo — trying Telegram..."
               dl_dest="${{ github.workspace }}/downloads/$basename"
-              if ! fetch_from_telegram "$basename" "$dl_dest"; then
-                continue
-              fi
+              fetch_from_telegram "$basename" "$dl_dest" || continue
               abs_path="$dl_dest"
             fi
 
-            find results/ -type f -delete 2>/dev/null || true
+            find results/ -type f -delete || true
 
             docker run --rm \
               -v "$abs_path:/input/$basename" \
               -v "${{ github.workspace }}/results:/output" \
               cyberseenu/apk-scanner:1.0.3 \
-              scan "/input/$basename" \
-              --skip-sonar \
-              $flags < /dev/null
+              scan "/input/$basename" --skip-sonar $flags
 
-            result_zips=$(find results/ -name "*.zip" | sort)
+            result_zips=$(find results/ -name "*.zip")
 
             if [ -z "$result_zips" ]; then
               curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
                 -d chat_id="${CHAT_ID}" \
-                -d text="✅ Scan complete for ${basename} — no ZIP output generated."
+                -d text="✅ Done: ${basename}"
             else
-              RESULT_ZIPS="$result_zips" TARGET_BASENAME="$basename" python3 - << 'TGEOF'
-import os
-from pathlib import Path
-import subprocess
-
-result_zips = [p for p in os.environ.get("RESULT_ZIPS", "").splitlines() if p.strip()]
-basename = os.environ["TARGET_BASENAME"]
-BOT_TOKEN = os.environ['BOT_TOKEN']
-CHAT_ID = os.environ['CHAT_ID']
-API_ID = int(os.environ['API_ID'])
-API_HASH = os.environ['API_HASH']
-SESSION = os.environ['SESSION']
-
-def send_bot_api(filepath, caption):
-    subprocess.run([
-        'curl', '-s',
-        '-F', f'chat_id={CHAT_ID}',
-        '-F', f'caption={caption}',
-        '-F', f'document=@{filepath}',
-        f'https://api.telegram.org/bot{BOT_TOKEN}/sendDocument'
-    ])
-
-def send_pyrogram(filepath, caption):
-    try:
-        from pyrogram import Client
-        app = Client('tg_runtime', api_id=API_ID, api_hash=API_HASH,
-                     session_string=SESSION, no_updates=True)
-        with app:
-            for _ in app.get_dialogs(): pass
-            app.send_document(chat_id=int(CHAT_ID), document=filepath, caption=caption)
-        print(f"Sent via Pyrogram: {filepath}")
-        return True
-    except Exception as e:
-        print(f"Pyrogram error: {e}")
-        return False
-
-for rzip in result_zips:
-    if not Path(rzip).exists():
-        continue
-
-    size = Path(rzip).stat().st_size
-    caption = f"✅ Results: {basename}"
-
-    if size <= 52428800:
-        send_bot_api(rzip, caption)
-    else:
-        send_pyrogram(rzip, caption)
-TGEOF
+              for file in $result_zips; do
+                curl -s -F chat_id="${CHAT_ID}" \
+                     -F document=@"$file" \
+                     "https://api.telegram.org/bot${BOT_TOKEN}/sendDocument"
+              done
             fi
 
           done < new_apk-target.txt
 
-      - name: Upload scan results
+      - name: Upload results
         uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: apk-scan-results
+          name: apk-results
           path: results/
-          retention-days: 30
-          if-no-files-found: warn
