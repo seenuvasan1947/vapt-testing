@@ -130,64 +130,11 @@ jobs:
             if [ -z "$result_zips" ]; then
               curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
                 -d chat_id="${CHAT_ID}" \
-                -d text="✅ Scan complete for ${basename} — no ZIP output generated."
+                -d text="Scan complete for ${basename} — no ZIP output generated."
             else
-              python3 << 'TGEOF'
-          import os, sys
-          from pathlib import Path
-
-          result_zips = """$result_zips""".strip().split('\n')
-          basename = """${basename}"""
-          BOT_TOKEN = os.environ['BOT_TOKEN']
-          CHAT_ID = os.environ['CHAT_ID']
-          API_ID = int(os.environ['API_ID'])
-          API_HASH = os.environ['API_HASH']
-          SESSION = os.environ['SESSION']
-
-          import subprocess
-          def send_bot_api(filepath, caption):
-              """Send via Bot API (≤50MB)"""
-              cmd = ['curl', '-s',
-                     '-F', f'chat_id={CHAT_ID}',
-                     '-F', f'caption={caption}',
-                     '-F', f'document=@{filepath}',
-                     f'https://api.telegram.org/bot{BOT_TOKEN}/sendDocument']
-              subprocess.run(cmd)
-
-          def send_pyrogram(filepath, caption):
-              """Send via Pyrogram user account (up to 2GB)"""
-              try:
-                  from pyrogram import Client
-                  app = Client('tg_session', api_id=API_ID, api_hash=API_HASH,
-                               session_string=SESSION, no_updates=True)
-                  with app:
-                      for _ in app.get_dialogs(): pass  # preload peer cache
-                      app.send_document(chat_id=int(CHAT_ID), document=filepath,
-                                       caption=caption)
-                  print(f"Sent via Pyrogram: {filepath}")
-              except Exception as e:
-                  print(f"Pyrogram error: {e}")
-                  return False
-              return True
-
-          for rzip in result_zips:
-              if not rzip or not Path(rzip).exists():
-                  continue
-
-              size_bytes = Path(rzip).stat().st_size
-              size_mb = size_bytes / (1024 * 1024)
-              caption = f"✅ Results: {basename}"
-
-              if size_bytes <= 52428800:  # 50 MB
-                  print(f"Sending {Path(rzip).name} ({size_mb:.1f}MB) via Bot API...")
-                  send_bot_api(rzip, caption)
-              else:
-                  print(f"Sending {Path(rzip).name} ({size_mb:.1f}MB) via Pyrogram...")
-                  if send_pyrogram(rzip, caption):
-                      print(f"✅ Sent via Pyrogram: {size_mb:.1f}MB")
-                  else:
-                      print(f"Failed to send {rzip}")
-          TGEOF
+              export SCAN_BASENAME="$basename"
+              export RESULT_ZIPS="$result_zips"
+              python3 "${{ github.workspace }}/.github/scripts/send_results.py"
             fi
 
           done < new_apk-target.txt

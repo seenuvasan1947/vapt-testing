@@ -12,6 +12,7 @@ async def run():
     app = Client("tg_session", api_id=API_ID, api_hash=API_HASH,
                  session_string=SESSION, no_updates=True)
     async with app:
+        await app.get_chat(CHAT_ID)  # populate peer cache
         async for msg in app.search_messages(chat_id=CHAT_ID, query=target):
             if msg.document and os.path.basename(msg.document.file_name) == os.path.basename(target):
                 print(f"[+] Found: {msg.document.file_name}", flush=True)
