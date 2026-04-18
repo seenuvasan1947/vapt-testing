@@ -22,7 +22,8 @@ async def send_pyrogram(filepath, caption):
     app = Client('tg_session', api_id=API_ID, api_hash=API_HASH,
                  session_string=SESSION, no_updates=True)
     async with app:
-        await app.get_chat(int(CHAT_ID))  # populate peer cache
+        async for _ in app.get_dialogs():  # populate peer cache
+            pass
         await app.send_document(chat_id=int(CHAT_ID), document=filepath, caption=caption)
     print(f"Sent via Pyrogram: {filepath}")
 
