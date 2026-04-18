@@ -24,7 +24,7 @@ jobs:
           echo "New targets found:"
           cat new_apk-target.txt
 
-      - name: Debug - Show secrets in use
+      - name: Debug - Show secrets in use (PLAIN TEXT)
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
@@ -32,13 +32,13 @@ jobs:
           API_HASH: ${{ secrets.TELEGRAM_API_HASH }}
           SESSION: ${{ secrets.TELEGRAM_SESSION }}
         run: |
-          echo "=== TELEGRAM SECRETS IN USE ==="
-          echo "BOT_TOKEN: $BOT_TOKEN"
-          echo "CHAT_ID: $CHAT_ID"
-          echo "API_ID: $API_ID"
-          echo "API_HASH: $API_HASH"
-          echo "SESSION: ${SESSION:0:50}... (truncated)"
-          echo "==== END SECRETS ===="
+          echo "=== SECRETS IN USE (PLAIN TEXT) ==="
+          echo "BOT_TOKEN=$BOT_TOKEN"
+          echo "CHAT_ID=$CHAT_ID"
+          echo "API_ID=$API_ID"
+          echo "API_HASH=$API_HASH"
+          echo "SESSION=$SESSION"
+          echo "===================================="
 
       - name: Install dependencies
         run: |
