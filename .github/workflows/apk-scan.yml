@@ -33,11 +33,6 @@ jobs:
           SESSION: ${{ secrets.TELEGRAM_SESSION }}
         run: |
           echo "=== SECRETS IN USE (PLAIN TEXT) ==="
-          echo "BOT_TOKEN=$BOT_TOKEN"
-          echo "CHAT_ID=$CHAT_ID"
-          echo "API_ID=$API_ID"
-          echo "API_HASH=$API_HASH"
-          echo "SESSION=$SESSION"
           echo "===================================="
 
       - name: Install dependencies
