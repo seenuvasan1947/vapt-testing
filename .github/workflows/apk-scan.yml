@@ -122,7 +122,7 @@ jobs:
 
             # Zip entire results folder and send to Telegram
             result_zip="${{ github.workspace }}/downloads/${basename}_results.zip"
-            zip -r "$result_zip" results/
+            zip -r "$result_zip" results/ --exclude "*/apktool/*" --exclude "*/jadx/*"
 
             if [ ! -s "$result_zip" ]; then
               curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
