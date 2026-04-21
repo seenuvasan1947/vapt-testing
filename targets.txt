@@ -13,3 +13,4 @@ moneypechu.com|||--mode aggressive
 oviyasmeraki.com|||--mode aggressive
 agilysys.com|||--mode aggressive|||--nodes subdomain_finder
 agilysys.com|||--mode aggressive
+careers.agilysys.com|||--mode aggressive|||--use-tor
