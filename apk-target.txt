@@ -24,3 +24,4 @@
 #   --skip-semgrep      Skip Semgrep static analysis
 #   --patch-only        Only patch APK for MITM, skip all analysis
 extracted_apks_1776576580933.zip|||--name extracted_apks_1776576580933 --patch-only
+extracted_apks_1776856957156.zip|||--name extracted_apks_1776856957156 --patch-only
