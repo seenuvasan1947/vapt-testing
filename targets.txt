@@ -16,3 +16,4 @@ agilysys.com|||--mode aggressive
 careers.agilysys.com|||--mode aggressive|||--use-tor
 finatein.ai|||--mode aggressive|||--nodes subdomain_finder
 colaninfotech.com|||--mode aggressive|||--nodes subdomain_finder|||--use-tor
+talentpro.in|||--mode medium|||--preset recon|||--nodes subdomain_finder,email_security,subdomain_takeover,cloud_enum,cert_checker
