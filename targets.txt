@@ -20,3 +20,4 @@ talentpro.in|||--mode medium|||--preset recon|||--nodes subdomain_finder,email_s
 finstein.ai|||--mode medium|||--nodes subdomain_finder|||--use-tor
 finstein.ai|||--mode aggressive|||--use-tor
 directline.com|||--mode aggressive|||--nodes subdomain_finder
+agilysys.com|||--mode aggressive|||--nodes subdomain_finder
