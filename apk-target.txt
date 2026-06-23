@@ -37,3 +37,4 @@ Sanchar_Saathi_1780300559182.zip|||--name Sanchar_Saathi_1780300559182
 RailOne_178210369938.zip|||--name RailOne_1782103699380 --patch-only
 RailOne_178210369938.zip|||--name RailOne_1782103699380 --patch-only
 RailOne_1782190048948.zip|||--name RailOne_1782190048948 --patch-only
+Freelancer_1782212112166.zip|||--name Freelancer_1782212112166 --patch-only
