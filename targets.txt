@@ -24,3 +24,4 @@ agilysys.com|||--mode aggressive|||--nodes subdomain_finder
 erpnext.finstein.ai|||--mode aggressive|||--use-tor
 biscuitswithtea.in|||--mode aggressive|||--use-tor
 biscuitswithtea.in|||--mode aggressive|||--nodes subdomain_finder
+biscuitswithtea.in|||--mode aggressive|||--nodes fetch_source_code,static_code_analysis,cert_checker,pathfinder,cve_exploit_finder|||--use-tor
