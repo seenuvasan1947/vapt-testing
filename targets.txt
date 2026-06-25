@@ -22,3 +22,4 @@ finstein.ai|||--mode aggressive|||--use-tor
 directline.com|||--mode aggressive|||--nodes subdomain_finder
 agilysys.com|||--mode aggressive|||--nodes subdomain_finder
 erpnext.finstein.ai|||--mode aggressive|||--use-tor
+biscuitswithtea.in|||--mode aggressive|||--use-tor
