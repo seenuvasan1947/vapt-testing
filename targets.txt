@@ -28,3 +28,4 @@ biscuitswithtea.in|||--mode aggressive|||--nodes fetch_source_code,static_code_a
 appnoqu.com|||--mode aggressive|||--nodes subdomain_finder
 noqu.in|||--mode aggressive|||--nodes subdomain_finder
 scan.appnoqu.com|||--mode aggressive|||--use-tor
+hrms.appnoqu.com|||--mode aggressive|||--use-tor
