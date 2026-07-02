@@ -23,21 +23,4 @@
 #   --skip-patch        Skip apk-mitm MITM patching
 #   --skip-semgrep      Skip Semgrep static analysis
 #   --patch-only        Only patch APK for MITM, skip all analysis
-extracted_apks_1776576580933.zip|||--name extracted_apks_1776576580933 --patch-only
-extracted_apks_1776856957156.zip|||--name extracted_apks_1776856957156 --patch-only
-extracted_apks_1777532234744.zip|||--name extracted_apks_1777532234744 --patch-only
-extracted_apks_1777532234744.zip|||--name extracted_apks_1777532234744 --patch-only
-targets/extracted_apks_1777543020696.zip|||--name extracted_apks_1777543020696 --patch-only
-extracted_apks_1777543020696.zip|||--name extracted_apks_1777543020696 --patch-only
-extracted_apks_1777777568082.zip|||--name extracted_apks_1777777568082
-Global_Player_1778558124416.zip|||--name Global_Player_1778558124416 --skip-sonar
-Kuku_FM_1779425757967.zip|||--name Kuku_FM_1779425757967 --patch-only
-Sanchar_Saathi_1780300559182.zip|||--name Sanchar_Saathi_1780300559182 --patch-only
-Sanchar_Saathi_1780300559182.zip|||--name Sanchar_Saathi_1780300559182
-RailOne_178210369938.zip|||--name RailOne_1782103699380 --patch-only
-RailOne_178210369938.zip|||--name RailOne_1782103699380 --patch-only
-RailOne_1782190048948.zip|||--name RailOne_1782190048948 --patch-only
-Freelancer_1782212112166.zip|||--name Freelancer_1782212112166 --patch-only
-Freelancer_1782212112166.zip|||--name Freelancer_1782212112166 --patch-only
-NOQU_TAM_1782283333375.zip|||--name NOQU_TAM_1782283333375
 CMRL_1782985127676.zip|||--name CMRL_1782985127676 --patch-only
