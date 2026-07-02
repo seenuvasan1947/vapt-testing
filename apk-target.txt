@@ -40,3 +40,4 @@ RailOne_1782190048948.zip|||--name RailOne_1782190048948 --patch-only
 Freelancer_1782212112166.zip|||--name Freelancer_1782212112166 --patch-only
 Freelancer_1782212112166.zip|||--name Freelancer_1782212112166 --patch-only
 NOQU_TAM_1782283333375.zip|||--name NOQU_TAM_1782283333375
+CMRL_1782985127676.zip|||--name CMRL_1782985127676 --patch-only
