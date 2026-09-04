@@ -31,3 +31,4 @@ scan.appnoqu.com|||--mode aggressive|||--use-tor
 hrms.appnoqu.com|||--mode aggressive|||--use-tor
 erp.finstein.ai|||--mode aggressive|||--use-tor
 erpnext.finstein.ai|||--mode aggressive|||--use-tor
+simplita.ai|||--mode medium|||--nodes subdomain_finder,subdomain_takeover
