@@ -24,3 +24,4 @@
 #   --skip-semgrep      Skip Semgrep static analysis
 #   --patch-only        Only patch APK for MITM, skip all analysis
 CMRL_1782985127676.zip|||--name CMRL_1782985127676 --patch-only
+ChettiarMatrimony_1789382154914.zip|||--name ChettiarMatrimony_1789382154914 --patch-only
