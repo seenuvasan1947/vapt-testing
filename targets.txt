@@ -34,3 +34,4 @@ erpnext.finstein.ai|||--mode aggressive|||--use-tor
 simplita.ai|||--mode medium|||--nodes subdomain_finder,subdomain_takeover
 simplita.ai|||--mode medium|||--nodes clickjacking,secrets_scanner,httpx
 ghsloyalty.com|||--mode medium|||--nodes subdomain_finder|||--use-tor
+zeaisoft.com|||--mode medium|||--nodes subdomain_takeover|||--use-tor
