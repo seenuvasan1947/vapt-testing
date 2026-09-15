@@ -36,3 +36,4 @@ simplita.ai|||--mode medium|||--nodes clickjacking,secrets_scanner,httpx
 ghsloyalty.com|||--mode medium|||--nodes subdomain_finder|||--use-tor
 zeaisoft.com|||--mode medium|||--nodes subdomain_takeover|||--use-tor
 zeaisoft.com|||--mode medium|||--nodes subdomain_finder,httpx,zap_scanner,sqlmap,xss_scanner,wpscan,xxe_detector,csrf_form_checker,open_redirect_checker,clickjacking,secrets_scanner,techstack_finder,wafw00f,cert_checker,subdomain_takeover|||--use-tor
+zeaisoft.com|||--mode medium|||--nodes subdomain_finder|||--use-tor
